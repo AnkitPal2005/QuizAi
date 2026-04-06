@@ -1,0 +1,125 @@
+@model List<AIQuizPlatform.Services.LeaderboardEntry>
+@{
+    ViewData["Title"] = "Leaderboard";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+
+        <!-- Header -->
+        <div class="card mb-4" style="background:linear-gradient(135deg,#0f172a,#1e1b4b,#312e81);border:none !important">
+            <div class="card-body p-4 text-center text-white">
+                <div style="width:64px;height:64px;background:rgba(245,158,11,0.2);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+                    <i class="bi bi-trophy-fill text-warning fs-2"></i>
+                </div>
+                <h4 style="font-weight:800;margin-bottom:0.25rem">Global Leaderboard</h4>
+                <p style="color:rgba(255,255,255,0.5);font-size:0.875rem;margin:0">Top performers ranked by XP earned</p>
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-people" style="font-size:2.5rem;color:#94a3b8"></i>
+                    <p style="color:#64748b;margin-top:0.75rem">No data yet. Be the first to take a quiz!</p>
+                    <a asp-controller="Quiz" asp-action="Index" class="btn btn-primary px-4">Start a Quiz</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Top 3 Podium -->
+            @if (Model.Count >= 3)
+            {
+                <div class="row g-3 mb-4 align-items-end">
+                    <!-- 2nd -->
+                    <div class="col-4">
+                        <div class="card text-center" style="border:2px solid #e2e8f0 !important">
+                            <div class="card-body p-3">
+                                <div style="width:48px;height:48px;background:#f1f5f9;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 0.5rem;font-size:1.2rem;font-weight:800;color:#475569">
+                                    @(string.IsNullOrEmpty(Model[1].FullName) ? "?" : Model[1].FullName[0].ToString().ToUpper())
+                                </div>
+                                <div style="font-size:1.5rem">🥈</div>
+                                <p style="font-weight:700;font-size:0.82rem;margin:0.25rem 0 0">@(Model[1].FullName.Split(' ')[0])</p>
+                                <p style="color:#6366f1;font-weight:700;font-size:0.85rem;margin:0">@Model[1].XP XP</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 1st -->
+                    <div class="col-4">
+                        <div class="card text-center" style="border:2px solid #f59e0b !important;transform:scale(1.05)">
+                            <div class="card-body p-3">
+                                <div style="width:56px;height:56px;background:#fef3c7;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 0.5rem;font-size:1.4rem;font-weight:800;color:#92400e">
+                                    @(string.IsNullOrEmpty(Model[0].FullName) ? "?" : Model[0].FullName[0].ToString().ToUpper())
+                                </div>
+                                <div style="font-size:1.8rem">🥇</div>
+                                <p style="font-weight:800;font-size:0.9rem;margin:0.25rem 0 0">@(Model[0].FullName.Split(' ')[0])</p>
+                                <p style="color:#f59e0b;font-weight:800;font-size:0.9rem;margin:0">@Model[0].XP XP</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 3rd -->
+                    <div class="col-4">
+                        <div class="card text-center" style="border:2px solid #e2e8f0 !important">
+                            <div class="card-body p-3">
+                                <div style="width:48px;height:48px;background:#f1f5f9;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 0.5rem;font-size:1.2rem;font-weight:800;color:#475569">
+                                    @(string.IsNullOrEmpty(Model[2].FullName) ? "?" : Model[2].FullName[0].ToString().ToUpper())
+                                </div>
+                                <div style="font-size:1.5rem">🥉</div>
+                                <p style="font-weight:700;font-size:0.82rem;margin:0.25rem 0 0">@(Model[2].FullName.Split(' ')[0])</p>
+                                <p style="color:#6366f1;font-weight:700;font-size:0.85rem;margin:0">@Model[2].XP XP</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Full Table -->
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead style="background:#f8fafc">
+                                <tr style="font-size:0.78rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">
+                                    <th class="ps-4">Rank</th>
+                                    <th>Player</th>
+                                    <th>Level</th>
+                                    <th>XP</th>
+                                    <th>Quizzes</th>
+                                    <th>Avg Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Count; i++)
+                                {
+                                    var e = Model[i];
+                                    <tr style="@(i < 3 ? "background:#fffbeb" : "")">
+                                        <td class="ps-4 fw-bold">
+                                            @if (i == 0) { <span>🥇</span> }
+                                            else if (i == 1) { <span>🥈</span> }
+                                            else if (i == 2) { <span>🥉</span> }
+                                            else { <span style="color:#94a3b8">#@(i+1)</span> }
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div style="width:36px;height:36px;background:#eef2ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#6366f1">
+                                                    @(string.IsNullOrEmpty(e.FullName) ? "?" : e.FullName[0].ToString().ToUpper())
+                                                </div>
+                                                <span style="font-weight:600;font-size:0.875rem">@(string.IsNullOrEmpty(e.FullName) ? "Anonymous" : e.FullName)</span>
+                                            </div>
+                                        </td>
+                                        <td><span style="background:#eef2ff;color:#6366f1;font-size:0.75rem;padding:3px 8px;border-radius:5px;font-weight:600">Lv.@e.Level</span></td>
+                                        <td style="font-weight:800;color:#6366f1">@e.XP</td>
+                                        <td style="color:#64748b">@e.TotalAttempts</td>
+                                        <td style="color:#64748b">@Math.Round(e.AvgScore, 1)%</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

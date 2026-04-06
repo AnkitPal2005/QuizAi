@@ -1,0 +1,144 @@
+@{
+    ViewData["Title"] = "Generate AI Quiz";
+    var categories = ViewBag.Categories as List<AIQuizPlatform.Models.Category>;
+}
+
+<div class="row g-4">
+    <!-- Left Info Panel -->
+    <div class="col-lg-4 d-none d-lg-block">
+        <div class="card h-100" style="background:linear-gradient(160deg,#0f172a,#1e1b4b,#312e81);border:none !important">
+            <div class="card-body p-4 text-white d-flex flex-column">
+                <div class="mb-4">
+                    <div style="width:56px;height:56px;background:rgba(245,158,11,0.2);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem">
+                        <i class="bi bi-robot text-warning fs-3"></i>
+                    </div>
+                    <h4 style="font-weight:800">AI Quiz Generator</h4>
+                    <p style="color:rgba(255,255,255,0.6);font-size:0.875rem">
+                        Powered by Groq LLaMA 3 — generates high-quality MCQs on any topic in seconds.
+                    </p>
+                </div>
+
+                <div class="d-flex flex-column gap-3 mt-2">
+                    @{
+                        var tips = new[] {
+                            new { Icon = "bi-lightbulb", Text = "Be specific — \"Binary Search Trees\" works better than \"DSA\"" },
+                            new { Icon = "bi-sliders", Text = "Choose difficulty based on your current level" },
+                            new { Icon = "bi-tags", Text = "Add tags to organize your quiz library" },
+                            new { Icon = "bi-arrow-repeat", Text = "AI retries automatically if generation fails" },
+                        };
+                    }
+                    @foreach (var tip in tips)
+                    {
+                        <div class="d-flex gap-3 align-items-start">
+                            <div style="width:32px;height:32px;background:rgba(99,102,241,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                <i class="bi @tip.Icon" style="color:#a78bfa;font-size:0.85rem"></i>
+                            </div>
+                            <p style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin:0;padding-top:0.35rem">@tip.Text</p>
+                        </div>
+                    }
+                </div>
+
+                <div class="mt-auto pt-4">
+                    <div style="background:rgba(255,255,255,0.06);border-radius:10px;padding:1rem">
+                        <p style="color:rgba(255,255,255,0.4);font-size:0.75rem;margin:0">
+                            <i class="bi bi-shield-check me-1 text-success"></i>
+                            Questions are AI-generated and reviewed for accuracy
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Panel -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body p-4 p-lg-5">
+                <div class="mb-4">
+                    <h4 style="font-weight:800;margin-bottom:0.25rem">Generate a New Quiz</h4>
+                    <p style="color:#64748b;font-size:0.875rem;margin:0">Fill in the details and let AI do the rest</p>
+                </div>
+
+                <form method="post" id="generateForm">
+                    <div class="mb-4">
+                        <label class="form-label">Topic <span style="color:#ef4444">*</span></label>
+                        <input type="text" name="topic" class="form-control"
+                               style="font-size:1rem;padding:0.75rem 1rem"
+                               placeholder="e.g. Binary Search Trees, TCP/IP Protocol, Deadlocks in OS..." required />
+                        <div style="font-size:0.78rem;color:#94a3b8;margin-top:0.4rem">
+                            <i class="bi bi-info-circle me-1"></i>Be specific for better quality questions
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <label class="form-label">Difficulty Level</label>
+                            <div class="d-flex gap-2">
+                                @foreach (var (val, label, color) in new[] { ("0","Easy","#10b981"), ("1","Medium","#f59e0b"), ("2","Hard","#ef4444") })
+                                {
+                                    <label class="flex-fill text-center py-2 px-1 rounded-3 cursor-pointer diff-btn"
+                                           style="border:2px solid #e2e8f0;font-size:0.82rem;font-weight:600;transition:all 0.15s">
+                                        <input type="radio" name="difficulty" value="@val" class="d-none" @(val == "1" ? "checked" : "") />
+                                        <span style="color:@color">@label</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Number of Questions</label>
+                            <select name="questionCount" class="form-select">
+                                <option value="5">5 Questions (~5 min)</option>
+                                <option value="10" selected>10 Questions (~10 min)</option>
+                                <option value="15">15 Questions (~15 min)</option>
+                                <option value="20">20 Questions (~20 min)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Category</label>
+                        <select name="categoryId" class="form-select">
+                            @foreach (var cat in categories ?? new())
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">
+                            Tags
+                            <span style="color:#94a3b8;font-weight:400;font-size:0.8rem">(optional, comma separated)</span>
+                        </label>
+                        <input type="text" name="tags" class="form-control" placeholder="e.g. DSA, Trees, Interview Prep" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3" id="generateBtn"
+                            style="font-size:1rem;border-radius:10px">
+                        <i class="bi bi-lightning-charge me-2"></i>Generate Quiz with AI
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// Difficulty button highlight
+document.querySelectorAll('.diff-btn').forEach(label => {
+    const radio = label.querySelector('input[type=radio]');
+    if (radio.checked) label.style.borderColor = '#6366f1';
+    label.addEventListener('click', () => {
+        document.querySelectorAll('.diff-btn').forEach(l => l.style.borderColor = '#e2e8f0');
+        label.style.borderColor = '#6366f1';
+    });
+});
+
+document.getElementById('generateForm').addEventListener('submit', function() {
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating with AI — please wait...';
+});
+</script>
+}

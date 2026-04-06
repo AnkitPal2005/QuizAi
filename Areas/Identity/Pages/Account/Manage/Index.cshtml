@@ -1,0 +1,60 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Profile";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row g-4">
+    <div class="col-md-3">
+        <partial name="_ManageNav" />
+    </div>
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-body p-4 p-lg-5">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div style="width:52px;height:52px;background:#eef2ff;border-radius:14px;display:flex;align-items:center;justify-content:center">
+                        <i class="bi bi-person-fill" style="color:#6366f1;font-size:1.4rem"></i>
+                    </div>
+                    <div>
+                        <h5 style="font-weight:800;margin:0">Profile Settings</h5>
+                        <p style="color:#64748b;font-size:0.82rem;margin:0">Update your personal information</p>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.StatusMessage))
+                {
+                    <div class="alert-custom @(Model.StatusMessage.Contains("Error") ? "alert-danger-custom" : "alert-success-custom") mb-4">
+                        <i class="bi @(Model.StatusMessage.Contains("Error") ? "bi-exclamation-triangle-fill" : "bi-check-circle-fill")"></i>
+                        @Model.StatusMessage
+                    </div>
+                }
+
+                <form id="profile-form" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username</label>
+                        <input asp-for="Username" class="form-control" disabled
+                               style="background:#f8fafc;color:#94a3b8" />
+                    </div>
+                    <div class="mb-4">
+                        <label asp-for="Input.PhoneNumber" class="form-label fw-semibold">Phone Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-telephone text-muted"></i></span>
+                            <input asp-for="Input.PhoneNumber" class="form-control border-start-0 ps-0"
+                                   placeholder="+1 (555) 000-0000" />
+                        </div>
+                        <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
+                    </div>
+
+                    <button id="update-profile-button" type="submit" class="btn btn-primary px-5 py-2">
+                        <i class="bi bi-check-lg me-2"></i>Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

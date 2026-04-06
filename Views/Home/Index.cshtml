@@ -1,0 +1,117 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero -->
+<div class="hero-section mb-5 text-white">
+    <div class="row align-items-center">
+        <div class="col-lg-7">
+            <div class="d-inline-flex align-items-center gap-2 mb-3 px-3 py-1 rounded-pill"
+                 style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3)">
+                <i class="bi bi-robot text-warning" style="font-size:0.85rem"></i>
+                <span style="font-size:0.8rem;color:#fbbf24;font-weight:600">Powered by Groq AI — LLaMA 3</span>
+            </div>
+            <h1 style="font-size:2.8rem;font-weight:800;line-height:1.15;letter-spacing:-1px" class="mb-3">
+                Master Any Topic with<br>
+                <span style="background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+                    AI-Generated Quizzes
+                </span>
+            </h1>
+            <p style="color:rgba(255,255,255,0.65);font-size:1.05rem;max-width:480px" class="mb-4">
+                Generate personalized quizzes on DSA, CN, OS, DBMS and more. Track progress, compete on leaderboards, and level up your skills.
+            </p>
+            <div class="d-flex gap-3 flex-wrap">
+                @if (!User.Identity!.IsAuthenticated || User.IsInRole("Admin") || User.IsInRole("Mentor"))
+                {
+                    <a asp-controller="Quiz" asp-action="Generate"
+                       class="btn btn-warning px-4 py-2"
+                       style="font-size:0.95rem;border-radius:10px;box-shadow:0 4px 20px rgba(245,158,11,0.4)">
+                        <i class="bi bi-lightning-charge me-2"></i>Generate Quiz
+                    </a>
+                }
+                <a asp-controller="Quiz" asp-action="Index"
+                   class="btn px-4 py-2"
+                   style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:0.95rem;border-radius:10px">
+                    <i class="bi bi-collection me-2"></i>Browse Quizzes
+                </a>
+            </div>
+        </div>
+
+        <!-- Robot Illustration -->
+        <div class="col-lg-5 d-none d-lg-flex justify-content-center align-items-center">
+            <div style="position:relative">
+                <div style="width:220px;height:220px;background:rgba(139,92,246,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(139,92,246,0.3)">
+                    <i class="bi bi-robot" style="font-size:8rem;color:rgba(167,139,250,0.9)"></i>
+                </div>
+                <div style="position:absolute;top:-10px;right:-10px;background:#f59e0b;border-radius:12px;padding:8px 14px;font-size:0.75rem;font-weight:700;color:#fff;box-shadow:0 4px 12px rgba(245,158,11,0.4)">
+                    <i class="bi bi-robot me-1"></i>AI Powered
+                </div>
+                <div style="position:absolute;bottom:-10px;left:-20px;background:#6366f1;border-radius:12px;padding:8px 14px;font-size:0.75rem;font-weight:700;color:#fff;box-shadow:0 4px 12px rgba(99,102,241,0.4)">
+                    <i class="bi bi-trophy me-1"></i>Leaderboard
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Stats -->
+<div class="row g-4 mb-5">
+    @{
+        var features = new (string Icon, string Color, string Bg, string Title, string Desc)[] {
+            ("bi-robot",          "#6366f1", "#eef2ff", "AI Quizzes",    "Instantly generated on any topic"),
+            ("bi-stopwatch-fill", "#ef4444", "#fee2e2", "Timed Exams",   "Real exam-like experience"),
+            ("bi-graph-up-arrow", "#10b981", "#d1fae5", "Analytics",     "Track weak topics & progress"),
+            ("bi-trophy-fill",    "#f59e0b", "#fef3c7", "Leaderboard",   "Compete & earn badges"),
+        };
+    }
+    @foreach (var (Icon, Color, Bg, Title, Desc) in features)
+    {
+        @if (Title != "AI Quizzes" || !User.Identity!.IsAuthenticated || User.IsInRole("Admin") || User.IsInRole("Mentor"))
+        {
+        <div class="col-md-6 col-lg-3">
+            <div class="card stat-card h-100">
+                <div class="card-body text-center p-4">
+                    <div class="stat-icon mx-auto" style="background:@Bg">
+                        <i class="bi @Icon" style="color:@Color"></i>
+                    </div>
+                    <h6 style="font-weight:700;margin-bottom:0.25rem">@Title</h6>
+                    <p class="mb-0" style="color:#64748b;font-size:0.82rem">@Desc</p>
+                </div>
+            </div>
+        </div>
+        }
+    }
+</div>
+
+<!-- Categories -->
+<div class="section-title">
+    <div style="width:4px;height:20px;background:var(--primary);border-radius:2px"></div>
+    Browse by Category
+</div>
+<div class="row g-3">
+    @{
+        var categories = new (string Name, string Icon, string Color, string Bg, string Desc)[] {
+            ("DSA",              "bi-diagram-3",  "#6366f1", "#eef2ff", "Arrays, Trees, Graphs, DP"),
+            ("Computer Networks","bi-hdd-network","#0ea5e9", "#e0f2fe", "TCP/IP, HTTP, DNS, OSI"),
+            ("Operating Systems","bi-cpu",        "#10b981", "#d1fae5", "Processes, Memory, Scheduling"),
+            ("DBMS",             "bi-database",   "#f59e0b", "#fef3c7", "SQL, Normalization, Transactions"),
+            ("OOP",              "bi-boxes",      "#ef4444", "#fee2e2", "Inheritance, Polymorphism, SOLID"),
+            ("System Design",    "bi-layers",     "#8b5cf6", "#ede9fe", "Scalability, Caching, Microservices"),
+        };
+    }
+    @foreach (var (Name, Icon, Color, Bg, Desc) in categories)
+    {
+        <div class="col-6 col-md-4 col-lg-2">
+            <a asp-controller="Quiz" asp-action="Index" asp-route-search="@Name"
+               class="card category-card h-100">
+                <div class="card-body text-center p-3">
+                    <div class="cat-icon-wrap mx-auto" style="background:@Bg">
+                        <i class="bi @Icon" style="color:@Color"></i>
+                    </div>
+                    <p style="font-weight:700;font-size:0.82rem;margin-bottom:0.2rem">@Name</p>
+                    <p style="color:#94a3b8;font-size:0.7rem;margin:0">@Desc</p>
+                </div>
+            </a>
+        </div>
+    }
+</div>

@@ -1,0 +1,249 @@
+@model List<AIQuizPlatform.Models.QuizAttempt>
+@{
+    ViewData["Title"] = "Dashboard";
+    var user = ViewBag.User as AIQuizPlatform.Models.ApplicationUser;
+    var badges = ViewBag.Badges as List<AIQuizPlatform.Models.UserBadge>;
+    var weakTopics = ViewBag.WeakTopics as List<AIQuizPlatform.Controllers.WeakTopicDto>;
+    var levelNames = new[] { "", "Beginner", "Learner", "Intermediate", "Advanced", "Expert", "Master", "Legend" };
+    var nextLevelXP = new[] { 0, 100, 300, 600, 1000, 2000, 5000, int.MaxValue };
+    var lvl = user?.Level ?? 1;
+    var xpNext = nextLevelXP[Math.Min(lvl, 7)];
+    var xpPct = xpNext == int.MaxValue ? 100 : (int)((double)(user?.XP ?? 0) / xpNext * 100);
+}
+
+<!-- Profile Header -->
+<div class="card mb-4" style="background:linear-gradient(135deg,#0f172a,#1e1b4b,#312e81);border:none !important;overflow:hidden">
+    <div class="card-body p-4 text-white">
+        <div class="row align-items-center g-3">
+            <div class="col-auto">
+                <div style="width:72px;height:72px;background:rgba(255,255,255,0.15);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;border:2px solid rgba(255,255,255,0.2)">
+                    @(string.IsNullOrEmpty(user?.FullName) ? "?" : user.FullName[0].ToString().ToUpper())
+                </div>
+            </div>
+            <div class="col">
+                <h5 style="font-weight:800;margin-bottom:0.2rem">@(user?.FullName ?? "User")</h5>
+                <p style="color:rgba(255,255,255,0.5);font-size:0.82rem;margin-bottom:0.5rem">@user?.Email</p>
+                <span style="background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;font-size:0.78rem;font-weight:600;padding:3px 10px;border-radius:6px">
+                    <i class="bi bi-star-fill me-1"></i>Level @lvl — @(levelNames[Math.Min(lvl, 7)])
+                </span>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex justify-content-between mb-1" style="font-size:0.78rem;color:rgba(255,255,255,0.6)">
+                    <span>@user?.XP XP</span>
+                    @if (xpNext != int.MaxValue) { <span>Next level: @xpNext XP</span> }
+                </div>
+                <div class="progress" style="height:8px;background:rgba(255,255,255,0.15)">
+                    <div class="progress-bar" style="width:@xpPct%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    @{
+        var statItems = new (string Icon, string Color, string Bg, string Label, string Value)[] {
+            ("bi-collection-fill", "#6366f1", "#eef2ff", "Quizzes Taken", ViewBag.TotalAttempts?.ToString() ?? "0"),
+            ("bi-percent", "#10b981", "#d1fae5", "Avg Accuracy", ViewBag.AvgScore + "%"),
+            ("bi-lightning-fill", "#f59e0b", "#fef3c7", "Total XP", user?.XP.ToString() ?? "0"),
+            ("bi-award-fill", "#ef4444", "#fee2e2", "Badges", (badges?.Count ?? 0).ToString()),
+        };
+    }
+    @foreach (var (Icon, Color, Bg, Label, Value) in statItems)
+    {
+        <div class="col-6 col-md-3">
+            <div class="card stat-card">
+                <div class="card-body p-4 text-center">
+                    <div class="stat-icon mx-auto" style="background:@Bg">
+                        <i class="bi @Icon" style="color:@Color"></i>
+                    </div>
+                    <div style="font-size:1.6rem;font-weight:800;line-height:1">@Value</div>
+                    <div style="font-size:0.78rem;color:#64748b;margin-top:0.25rem">@Label</div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row g-4">
+    <!-- Recent Attempts -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="p-4 pb-0 d-flex justify-content-between align-items-center">
+                    <div class="section-title mb-0">
+                        <div style="width:4px;height:20px;background:var(--primary);border-radius:2px"></div>
+                        Recent Attempts
+                    </div>
+                    <a asp-controller="Quiz" asp-action="Index" style="font-size:0.82rem;color:#6366f1;text-decoration:none;font-weight:600">
+                        Take a quiz <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
+                @if (Model.Any())
+                {
+                    <div class="p-4 pt-3">
+                        <canvas id="performanceChart" height="100"></canvas>
+                    </div>
+                }
+
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <div style="width:56px;height:56px;background:#f1f5f9;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem">
+                            <i class="bi bi-inbox" style="font-size:1.5rem;color:#94a3b8"></i>
+                        </div>
+                        <p style="color:#64748b;font-size:0.875rem">No quizzes taken yet</p>
+                        <a asp-controller="Quiz" asp-action="Index" class="btn btn-primary btn-sm px-4">Start Now</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive mt-3">
+                        <table class="table table-hover mb-0">
+                            <thead style="background:#f8fafc">
+                                <tr style="font-size:0.78rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">
+                                    <th class="ps-4">Quiz</th>
+                                    <th>Category</th>
+                                    <th>Score</th>
+                                    <th>Accuracy</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var attempt in Model)
+                                {
+                                    var acc = attempt.TotalQuestions > 0 ? (double)attempt.CorrectAnswers / attempt.TotalQuestions * 100 : 0;
+                                    <tr>
+                                        <td class="ps-4" style="font-weight:600;font-size:0.875rem">@attempt.Quiz.Title</td>
+                                        <td>
+                                            <span style="background:#f1f5f9;color:#475569;font-size:0.75rem;padding:3px 8px;border-radius:5px;font-weight:500">
+                                                @attempt.Quiz.Category.Name
+                                            </span>
+                                        </td>
+                                        <td style="font-weight:700;color:#6366f1">@attempt.Score</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="progress flex-grow-1" style="height:6px;max-width:80px">
+                                                    <div class="progress-bar" style="width:@acc%;background:@(acc >= 60 ? "#10b981" : "#ef4444")"></div>
+                                                </div>
+                                                <span style="font-size:0.78rem;color:#64748b">@Math.Round(acc)%</span>
+                                            </div>
+                                        </td>
+                                        <td style="color:#94a3b8;font-size:0.8rem">@attempt.CompletedAt?.ToString("MMM dd")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4 d-flex flex-column gap-4">
+        <!-- Badges -->
+        <div class="card">
+            <div class="card-body p-4">
+                <div class="section-title">
+                    <div style="width:4px;height:20px;background:#f59e0b;border-radius:2px"></div>
+                    Badges Earned
+                </div>
+                @if (badges == null || !badges.Any())
+                {
+                    <p style="color:#94a3b8;font-size:0.82rem;text-align:center;padding:1rem 0">
+                        Complete quizzes to earn badges!
+                    </p>
+                }
+                else
+                {
+                    <div class="d-flex flex-wrap gap-3">
+                        @foreach (var ub in badges)
+                        {
+                            <div class="text-center" title="@ub.Badge.Description — @ub.Badge.Name">
+                                <div style="width:48px;height:48px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:0.3rem">
+                                    <i class="bi @ub.Badge.IconClass" style="color:@ub.Badge.ColorHex;font-size:1.3rem"></i>
+                                </div>
+                                <div style="font-size:0.65rem;color:#64748b;font-weight:600">@ub.Badge.Name</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Weak Topics -->
+        @if (weakTopics != null && weakTopics.Any())
+        {
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="section-title">
+                        <div style="width:4px;height:20px;background:#ef4444;border-radius:2px"></div>
+                        Weak Topics
+                    </div>
+                    @foreach (var topic in weakTopics)
+                    {
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1" style="font-size:0.82rem">
+                                <span style="font-weight:600">@topic.Category</span>
+                                <span style="color:#ef4444;font-weight:700">@Math.Round(topic.AvgAccuracy)%</span>
+                            </div>
+                            <div class="progress" style="height:6px">
+                                <div class="progress-bar" style="width:@topic.AvgAccuracy%;background:#ef4444"></div>
+                            </div>
+                        </div>
+                    }
+                    <a asp-controller="Quiz" asp-action="Generate" class="btn btn-outline-primary w-100 btn-sm mt-1">
+                        <i class="bi bi-robot me-1"></i>Practice Weak Topics
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Performance Chart
+const attempts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    Model.Select(a => new {
+        label = a.Quiz.Title.Length > 15 ? a.Quiz.Title[..15] + "..." : a.Quiz.Title,
+        score = a.TotalQuestions > 0 ? Math.Round((double)a.CorrectAnswers / a.TotalQuestions * 100, 1) : 0
+    }).Reverse().ToList()
+));
+
+if (attempts.length > 0) {
+    const ctx = document.getElementById('performanceChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: attempts.map(a => a.label),
+                datasets: [{
+                    label: 'Accuracy %',
+                    data: attempts.map(a => a.score),
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99,102,241,0.1)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#6366f1',
+                    pointRadius: 5,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+}
+</script>
+}

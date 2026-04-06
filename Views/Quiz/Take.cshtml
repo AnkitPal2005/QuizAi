@@ -1,0 +1,223 @@
+@model AIQuizPlatform.Models.Quiz
+@{
+    ViewData["Title"] = Model.Title;
+    var questions = ViewBag.ShuffledQuestions as List<AIQuizPlatform.Models.Question> ?? Model.Questions.ToList();
+}
+
+<div class="row g-4">
+    <!-- Sidebar -->
+    <div class="col-lg-3">
+        <div class="card sticky-top" style="top:80px">
+            <div class="card-body p-3">
+                <h6 style="font-weight:700;font-size:0.85rem;margin-bottom:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">Quiz Info</h6>
+                <p style="font-weight:700;font-size:0.95rem;margin-bottom:1rem">@Model.Title</p>
+
+                <!-- Timer -->
+                <div class="d-flex align-items-center gap-2 p-3 rounded-3 mb-3"
+                     style="background:#fee2e2;border:1px solid #fecaca">
+                    <i class="bi bi-stopwatch-fill text-danger"></i>
+                    <span id="timer" style="color:#dc2626;font-weight:800;font-size:1.4rem;letter-spacing:-1px">--:--</span>
+                </div>
+
+                <!-- Progress -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1" style="font-size:0.78rem;color:#64748b">
+                        <span>Progress</span>
+                        <span id="progressText">0 / @questions.Count</span>
+                    </div>
+                    <div class="progress" style="height:8px">
+                        <div class="progress-bar" id="progressBar" style="width:0%;background:var(--primary)"></div>
+                    </div>
+                </div>
+
+                <!-- Question Nav -->
+                <div style="font-size:0.75rem;color:#64748b;margin-bottom:0.5rem;font-weight:600">Questions</div>
+                <div class="d-flex flex-wrap gap-1" id="questionNav">
+                    @for (int i = 0; i < questions.Count; i++)
+                    {
+                        <button type="button" class="nav-btn btn btn-sm btn-outline-secondary"
+                                data-index="@i" onclick="goToQuestion(@i)">@(i + 1)</button>
+                    }
+                </div>
+
+                <div class="mt-3 d-flex flex-column gap-1" style="font-size:0.75rem">
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:12px;height:12px;background:#6366f1;border-radius:3px"></div>
+                        <span style="color:#64748b">Current</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:12px;height:12px;background:#10b981;border-radius:3px"></div>
+                        <span style="color:#64748b">Answered</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Questions -->
+    <div class="col-lg-9">
+        <form method="post" asp-action="Submit" id="quizForm">
+            <input type="hidden" name="quizId" value="@Model.Id" />
+            <input type="hidden" name="timeTaken" id="timeTaken" value="0" />
+
+            @for (int i = 0; i < questions.Count; i++)
+            {
+                var q = questions[i];
+                var opts = new[] { ("A", q.OptionA), ("B", q.OptionB), ("C", q.OptionC), ("D", q.OptionD) };
+                var shuffled = opts.OrderBy(_ => Guid.NewGuid()).ToArray();
+
+                <div class="card question-card @(i == 0 ? "" : "d-none")" id="q-@i">
+                    <div class="card-body p-4 p-lg-5">
+                        <!-- Question Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div style="font-size:0.8rem;color:#94a3b8;font-weight:600">
+                                Question @(i + 1) <span style="color:#e2e8f0">/ @questions.Count</span>
+                            </div>
+                            <span class="badge" style="background:#eef2ff;color:#6366f1">@Model.Difficulty</span>
+                        </div>
+
+                        <!-- Question Text -->
+                        <h5 style="font-weight:700;line-height:1.5;margin-bottom:1.75rem;font-size:1.05rem">
+                            @q.Text
+                        </h5>
+
+                        <!-- Options -->
+                        <div class="d-flex flex-column gap-3 mb-4">
+                            @foreach (var (key, text) in shuffled)
+                            {
+                                <label class="option-label">
+                                    <input type="radio" name="q_@q.Id" value="@key" class="d-none option-radio" data-qindex="@i" />
+                                    <span class="option-badge">@key</span>
+                                    <span>@text</span>
+                                </label>
+                            }
+                        </div>
+
+                        <!-- Navigation -->
+                        <div class="d-flex justify-content-between align-items-center pt-3"
+                             style="border-top:1px solid #f1f5f9">
+                            @if (i > 0)
+                            {
+                                <button type="button" class="btn btn-outline-secondary px-4"
+                                        onclick="goToQuestion(@(i-1))">
+                                    <i class="bi bi-arrow-left me-1"></i>Previous
+                                </button>
+                            }
+                            else { <span></span> }
+
+                            @if (i < questions.Count - 1)
+                            {
+                                <button type="button" class="btn btn-primary px-4"
+                                        onclick="goToQuestion(@(i+1))">
+                                    Next<i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn px-4"
+                                        style="background:#10b981;color:#fff;border:none"
+                                        onclick="submitQuiz()">
+                                    <i class="bi bi-check-circle me-1"></i>Submit Quiz
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+<!-- Tab Switch Warning -->
+<div class="modal fade" id="tabWarning" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border:2px solid #ef4444;border-radius:16px">
+            <div class="modal-body text-center p-4">
+                <div style="width:56px;height:56px;background:#fee2e2;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+                    <i class="bi bi-exclamation-triangle-fill text-danger fs-3"></i>
+                </div>
+                <h6 style="font-weight:700">Tab Switch Detected!</h6>
+                <p style="color:#64748b;font-size:0.85rem">Switching tabs during a quiz is not allowed.</p>
+                <button class="btn btn-danger w-100" data-bs-dismiss="modal">Return to Quiz</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const totalTime = @Model.TimeLimitSeconds;
+let timeLeft = totalTime;
+let answered = new Set();
+let currentQ = 0;
+
+const timerEl = document.getElementById('timer');
+const timeTakenEl = document.getElementById('timeTaken');
+
+const interval = setInterval(() => {
+    timeLeft--;
+    timeTakenEl.value = totalTime - timeLeft;
+    const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const s = (timeLeft % 60).toString().padStart(2, '0');
+    timerEl.textContent = `${m}:${s}`;
+    const wrap = timerEl.closest('div');
+    if (timeLeft <= 60) {
+        wrap.style.background = '#fee2e2';
+        timerEl.style.animation = 'pulse 1s infinite';
+    }
+    if (timeLeft <= 0) { clearInterval(interval); document.getElementById('quizForm').submit(); }
+}, 1000);
+
+function submitQuiz() {
+    if (confirm('Submit quiz? You cannot change answers after submission.')) {
+        clearInterval(interval);
+        document.getElementById('quizForm').submit();
+    }
+}
+
+function goToQuestion(index) {
+    document.querySelectorAll('.question-card').forEach(c => c.classList.add('d-none'));
+    document.getElementById('q-' + index).classList.remove('d-none');
+    currentQ = index;
+    updateNav();
+}
+
+function updateNav() {
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        const idx = parseInt(btn.dataset.index);
+        if (answered.has(idx)) {
+            btn.style.background = '#10b981';
+            btn.style.borderColor = '#10b981';
+            btn.style.color = '#fff';
+        } else if (idx === currentQ) {
+            btn.style.background = '#6366f1';
+            btn.style.borderColor = '#6366f1';
+            btn.style.color = '#fff';
+        } else {
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.style.color = '';
+        }
+    });
+    document.getElementById('progressBar').style.width = (answered.size / @questions.Count * 100) + '%';
+    document.getElementById('progressText').textContent = answered.size + ' / @questions.Count';
+}
+
+document.querySelectorAll('.option-radio').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const qIndex = parseInt(this.dataset.qindex);
+        answered.add(qIndex);
+        const card = document.getElementById('q-' + qIndex);
+        card.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected-option'));
+        this.closest('.option-label').classList.add('selected-option');
+        updateNav();
+    });
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) new bootstrap.Modal(document.getElementById('tabWarning')).show();
+});
+
+updateNav();
+</script>
+}

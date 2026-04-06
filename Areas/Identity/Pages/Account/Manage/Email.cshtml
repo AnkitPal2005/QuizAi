@@ -1,0 +1,76 @@
+﻿@page
+@model EmailModel
+@{
+    ViewData["Title"] = "Manage Email";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row g-4">
+    <div class="col-md-3">
+        <partial name="_ManageNav" />
+    </div>
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-body p-4 p-lg-5">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div style="width:52px;height:52px;background:#e0f2fe;border-radius:14px;display:flex;align-items:center;justify-content:center">
+                        <i class="bi bi-envelope-fill" style="color:#0ea5e9;font-size:1.4rem"></i>
+                    </div>
+                    <div>
+                        <h5 style="font-weight:800;margin:0">Email Settings</h5>
+                        <p style="color:#64748b;font-size:0.82rem;margin:0">Manage your email address</p>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.StatusMessage))
+                {
+                    <div class="alert-custom @(Model.StatusMessage.Contains("Error") ? "alert-danger-custom" : "alert-success-custom") mb-4">
+                        <i class="bi bi-check-circle-fill"></i>@Model.StatusMessage
+                    </div>
+                }
+
+                <form id="email-form" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Current Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope text-muted"></i></span>
+                            <input asp-for="Email" class="form-control border-start-0 ps-0" disabled
+                                   style="background:#f8fafc;color:#94a3b8" />
+                            @if (Model.IsEmailConfirmed)
+                            {
+                                <span class="input-group-text" style="background:#d1fae5;color:#065f46;border-color:#a7f3d0">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Verified
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="input-group-text" style="background:#fef3c7;color:#92400e;border-color:#fde68a">
+                                    <i class="bi bi-exclamation-circle me-1"></i>Unverified
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Input.NewEmail" class="form-label fw-semibold">New Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope-plus text-muted"></i></span>
+                            <input asp-for="Input.NewEmail" class="form-control border-start-0 ps-0"
+                                   placeholder="new@example.com" />
+                        </div>
+                        <span asp-validation-for="Input.NewEmail" class="text-danger small"></span>
+                    </div>
+
+                    <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail"
+                            class="btn btn-primary px-5 py-2">
+                        <i class="bi bi-check-lg me-2"></i>Update Email
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

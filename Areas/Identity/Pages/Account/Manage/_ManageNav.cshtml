@@ -1,0 +1,28 @@
+@inject SignInManager<AIQuizPlatform.Models.ApplicationUser> SignInManager
+
+<div class="card mb-3">
+    <div class="card-body p-3">
+        <nav class="d-flex flex-column gap-1">
+            <a asp-page="./Index"
+               class="nav-link rounded-2 px-3 py-2 @(ManageNavPages.IndexNavClass(ViewContext))"
+               style="font-size:0.875rem;font-weight:500;color:#475569;text-decoration:none">
+                <i class="bi bi-person me-2"></i>Profile
+            </a>
+            <a asp-page="./Email"
+               class="nav-link rounded-2 px-3 py-2 @(ManageNavPages.EmailNavClass(ViewContext))"
+               style="font-size:0.875rem;font-weight:500;color:#475569;text-decoration:none">
+                <i class="bi bi-envelope me-2"></i>Email
+            </a>
+            <a asp-page="./ChangePassword"
+               class="nav-link rounded-2 px-3 py-2 @(ManageNavPages.ChangePasswordNavClass(ViewContext))"
+               style="font-size:0.875rem;font-weight:500;color:#475569;text-decoration:none">
+                <i class="bi bi-lock me-2"></i>Password
+            </a>
+        </nav>
+    </div>
+</div>
+
+<style>
+.nav-link.active { background:#eef2ff !important; color:#6366f1 !important; font-weight:600 !important; }
+.nav-link:hover { background:#f8fafc; color:#1e293b !important; }
+</style>

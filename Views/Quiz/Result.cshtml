@@ -1,0 +1,208 @@
+@model AIQuizPlatform.Models.QuizAttempt
+@{
+    ViewData["Title"] = "Result";
+    var accuracy = Model.TotalQuestions > 0 ? (double)Model.CorrectAnswers / Model.TotalQuestions * 100 : 0;
+    var grade = accuracy >= 80 ? "Excellent" : accuracy >= 60 ? "Good Job" : accuracy >= 40 ? "Average" : "Keep Practicing";
+    var gradeColor = accuracy >= 80 ? "#10b981" : accuracy >= 60 ? "#6366f1" : accuracy >= 40 ? "#f59e0b" : "#ef4444";
+    var gradeBg = accuracy >= 80 ? "#d1fae5" : accuracy >= 60 ? "#eef2ff" : accuracy >= 40 ? "#fef3c7" : "#fee2e2";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+
+        <!-- Score Card -->
+        <div class="card mb-4" style="overflow:hidden">
+            <div style="background:linear-gradient(135deg,#0f172a,#1e1b4b,#312e81);padding:2.5rem;text-align:center;color:#fff">
+                <div style="width:100px;height:100px;background:@gradeBg;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+                    <span style="font-size:1.8rem;font-weight:800;color:@gradeColor">@Math.Round(accuracy)%</span>
+                </div>
+                <h3 style="font-weight:800;margin-bottom:0.25rem">@grade!</h3>
+                <p style="color:rgba(255,255,255,0.6);font-size:0.875rem;margin:0">@Model.Quiz.Title</p>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="row g-3 mb-4">
+                    @{
+                        var stats = new[] {
+                            new { Label = "Correct", Value = Model.CorrectAnswers.ToString(), Color = "#10b981", Bg = "#d1fae5", Icon = "bi-check-circle-fill" },
+                            new { Label = "Wrong", Value = Model.WrongAnswers.ToString(), Color = "#ef4444", Bg = "#fee2e2", Icon = "bi-x-circle-fill" },
+                            new { Label = "Skipped", Value = (Model.TotalQuestions - Model.CorrectAnswers - Model.WrongAnswers).ToString(), Color = "#64748b", Bg = "#f1f5f9", Icon = "bi-dash-circle-fill" },
+                            new { Label = "Score", Value = Model.Score.ToString(), Color = "#6366f1", Bg = "#eef2ff", Icon = "bi-star-fill" },
+                        };
+                    }
+                    @foreach (var s in stats)
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="text-center p-3 rounded-3" style="background:@s.Bg">
+                                <i class="bi @s.Icon mb-1 d-block" style="color:@s.Color;font-size:1.3rem"></i>
+                                <div style="font-size:1.5rem;font-weight:800;color:@s.Color">@s.Value</div>
+                                <div style="font-size:0.78rem;color:#64748b">@s.Label</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="text-center mb-4" style="color:#94a3b8;font-size:0.85rem">
+                    <i class="bi bi-clock me-1"></i>
+                    Time taken: @(Model.TimeTakenSeconds / 60)m @(Model.TimeTakenSeconds % 60)s
+                    &nbsp;·&nbsp;
+                    <span style="color:#f59e0b;font-weight:700">
+                        <i class="bi bi-lightning-fill me-1"></i>+@Model.XPGained XP earned
+                    </span>
+                </div>
+
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a asp-action="Take" asp-route-id="@Model.QuizId" class="btn btn-outline-primary px-4">
+                        <i class="bi bi-arrow-repeat me-1"></i>Retry
+                    </a>
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                        <i class="bi bi-collection me-1"></i>More Quizzes
+                    </a>
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary px-4">
+                        <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Doubt Solver -->
+        <div class="card mb-4" style="border:2px solid #6366f1 !important">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div style="width:40px;height:40px;background:#eef2ff;border-radius:10px;display:flex;align-items:center;justify-content:center">
+                        <i class="bi bi-robot" style="color:#6366f1;font-size:1.1rem"></i>
+                    </div>
+                    <div>
+                        <h6 style="font-weight:700;margin:0">AI Doubt Solver</h6>
+                        <p style="color:#64748b;font-size:0.78rem;margin:0">Ask anything about this quiz topic</p>
+                    </div>
+                </div>
+                <div id="chatMessages" style="max-height:300px;overflow-y:auto;margin-bottom:1rem"></div>
+                <div class="d-flex gap-2">
+                    <input type="text" id="doubtInput" class="form-control"
+                           placeholder="e.g. Why is Binary Search O(log n)?" />
+                    <button class="btn btn-primary px-4" onclick="askDoubt()" id="askBtn">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">
+            <div style="width:4px;height:20px;background:var(--primary);border-radius:2px"></div>
+            Answer Review
+        </div>
+
+        @foreach (var (answer, idx) in Model.Answers.Select((a, i) => (a, i)))
+        {
+            var borderColor = answer.IsCorrect ? "#10b981" : answer.SelectedOption != null ? "#ef4444" : "#e2e8f0";
+            var statusBg = answer.IsCorrect ? "#d1fae5" : answer.SelectedOption != null ? "#fee2e2" : "#f1f5f9";
+            var statusColor = answer.IsCorrect ? "#065f46" : answer.SelectedOption != null ? "#991b1b" : "#475569";
+            var statusText = answer.IsCorrect ? "Correct" : answer.SelectedOption != null ? "Wrong" : "Skipped";
+            var statusIcon = answer.IsCorrect ? "bi-check-circle-fill" : answer.SelectedOption != null ? "bi-x-circle-fill" : "bi-dash-circle-fill";
+
+            <div class="card mb-3" style="border-left:4px solid @borderColor !important">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span style="font-weight:700;font-size:0.95rem;flex:1;padding-right:1rem">
+                            Q@(idx + 1). @answer.Question.Text
+                        </span>
+                        <span class="badge d-flex align-items-center gap-1"
+                              style="background:@statusBg;color:@statusColor;white-space:nowrap">
+                            <i class="bi @statusIcon"></i>@statusText
+                        </span>
+                    </div>
+
+                    @if (!answer.IsCorrect)
+                    {
+                        <div class="d-flex gap-3 mt-2" style="font-size:0.82rem">
+                            @if (answer.SelectedOption != null)
+                            {
+                                <span style="color:#ef4444"><i class="bi bi-x-circle me-1"></i>Your answer: <strong>@answer.SelectedOption</strong></span>
+                            }
+                            <span style="color:#10b981"><i class="bi bi-check-circle me-1"></i>Correct: <strong>@answer.Question.CorrectOption</strong></span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(answer.Question.Explanation))
+                    {
+                        <div class="mt-3 p-3 rounded-3 d-flex gap-2"
+                             style="background:#f0f9ff;border:1px solid #bae6fd;font-size:0.83rem;color:#0c4a6e">
+                            <i class="bi bi-lightbulb-fill text-warning flex-shrink-0 mt-1"></i>
+                            <span>@answer.Question.Explanation</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// XP Float Animation
+document.addEventListener('DOMContentLoaded', () => {
+    const xp = @Model.XPGained;
+    if (xp > 0) {
+        const el = document.createElement('div');
+        el.textContent = '+' + xp + ' XP';
+        el.style.cssText = 'position:fixed;top:80px;right:30px;background:#f59e0b;color:#fff;font-weight:800;font-size:1.3rem;padding:10px 20px;border-radius:12px;z-index:9999;animation:floatUp 2.5s ease forwards;box-shadow:0 4px 20px rgba(245,158,11,0.5)';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2500);
+    }
+});
+
+// AI Doubt Solver
+const quizTopic = '@Model.Quiz.Topic';
+
+async function askDoubt() {
+    const input = document.getElementById('doubtInput');
+    const question = input.value.trim();
+    if (!question) return;
+
+    const btn = document.getElementById('askBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+    appendMessage('you', question);
+    input.value = '';
+
+    try {
+        const res = await fetch('/Doubt/Ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question, context: quizTopic })
+        });
+        const data = await res.json();
+        appendMessage('ai', data.answer);
+    } catch {
+        appendMessage('ai', 'Sorry, could not get answer. Try again.');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-send"></i>';
+}
+
+function appendMessage(role, text) {
+    const chat = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.style.cssText = `margin-bottom:0.75rem;display:flex;gap:0.5rem;${role === 'you' ? 'justify-content:flex-end' : ''}`;
+    div.innerHTML = role === 'you'
+        ? `<div style="background:#6366f1;color:#fff;padding:8px 14px;border-radius:12px 12px 2px 12px;font-size:0.875rem;max-width:80%">${text}</div>`
+        : `<div style="background:#f1f5f9;color:#1e293b;padding:8px 14px;border-radius:12px 12px 12px 2px;font-size:0.875rem;max-width:85%"><i class="bi bi-robot me-1 text-primary"></i>${text}</div>`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+document.getElementById('doubtInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') askDoubt();
+});
+</script>
+<style>
+@@keyframes floatUp {
+    0% { opacity:1; transform:translateY(0) scale(1); }
+    70% { opacity:1; transform:translateY(-60px) scale(1.1); }
+    100% { opacity:0; transform:translateY(-100px) scale(0.9); }
+}
+</style>
+}

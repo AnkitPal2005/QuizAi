@@ -1,0 +1,119 @@
+@model List<AIQuizPlatform.Models.Quiz>
+@{
+    ViewData["Title"] = "Browse Quizzes";
+    var categories = ViewBag.Categories as List<AIQuizPlatform.Models.Category>;
+}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight:800;margin-bottom:0.2rem">Browse Quizzes</h4>
+        <p style="color:#64748b;font-size:0.875rem;margin:0">@Model.Count quiz(zes) available</p>
+    </div>
+    @if (User.IsInRole("Admin") || User.IsInRole("Mentor"))
+    {
+        <a asp-action="Generate" class="btn btn-primary px-4">
+            <i class="bi bi-robot me-2"></i>Generate with AI
+        </a>
+    }
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body p-3">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Topic or title..." />
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Category</label>
+                <select name="categoryId" class="form-select">
+                    <option value="">All Categories</option>
+                    @foreach (var cat in categories ?? new())
+                    {
+                        <option value="@cat.Id" selected="@(ViewBag.SelectedCategory?.ToString() == cat.Id.ToString())">@cat.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel me-1"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <div style="width:72px;height:72px;background:#f1f5f9;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+                <i class="bi bi-inbox" style="font-size:2rem;color:#94a3b8"></i>
+            </div>
+            <h6 style="font-weight:700">No quizzes found</h6>
+            <p style="color:#64748b;font-size:0.875rem">Try a different filter or generate one with AI</p>
+            <a asp-action="Generate" class="btn btn-primary px-4">
+                <i class="bi bi-robot me-2"></i>Generate Quiz
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var quiz in Model)
+        {
+            var diffColor = quiz.Difficulty == AIQuizPlatform.Models.Difficulty.Easy ? "#10b981" :
+                            quiz.Difficulty == AIQuizPlatform.Models.Difficulty.Medium ? "#f59e0b" : "#ef4444";
+            var diffBg = quiz.Difficulty == AIQuizPlatform.Models.Difficulty.Easy ? "#d1fae5" :
+                         quiz.Difficulty == AIQuizPlatform.Models.Difficulty.Medium ? "#fef3c7" : "#fee2e2";
+            <div class="col-md-6 col-lg-4">
+                <div class="card quiz-card h-100">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge" style="background:@quiz.Category.ColorHex;font-size:0.72rem">
+                                @quiz.Category.Name
+                            </span>
+                            <span class="badge" style="background:@diffBg;color:@diffColor">
+                                @quiz.Difficulty
+                            </span>
+                        </div>
+
+                        <h6 style="font-weight:700;margin-bottom:0.3rem;line-height:1.4">@quiz.Title</h6>
+                        <p style="color:#64748b;font-size:0.82rem;margin-bottom:1rem">@quiz.Topic</p>
+
+                        <div class="d-flex gap-3 mb-3" style="font-size:0.8rem;color:#94a3b8">
+                            <span><i class="bi bi-question-circle me-1"></i>@quiz.Questions.Count Qs</span>
+                            <span><i class="bi bi-clock me-1"></i>@(quiz.TimeLimitSeconds / 60) min</span>
+                            @if (quiz.IsAIGenerated)
+                            {
+                                <span style="color:#6366f1"><i class="bi bi-robot me-1"></i>AI</span>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(quiz.Tags))
+                        {
+                            <div class="mb-3 d-flex flex-wrap gap-1">
+                                @foreach (var tag in quiz.Tags.Split(',').Take(3))
+                                {
+                                    <span style="background:#f1f5f9;color:#475569;font-size:0.7rem;padding:2px 8px;border-radius:4px;font-weight:500">@tag.Trim()</span>
+                                }
+                            </div>
+                        }
+
+                        <a asp-action="Take" asp-route-id="@quiz.Id"
+                           class="btn btn-primary w-100 mt-auto"
+                           style="border-radius:10px">
+                            <i class="bi bi-play-fill me-1"></i>Start Quiz
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

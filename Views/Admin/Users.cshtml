@@ -1,0 +1,51 @@
+@model List<AIQuizPlatform.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-people me-2 text-primary"></i>Users (@Model.Count)</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-4">Name</th>
+                        <th>Email</th>
+                        <th>XP / Level</th>
+                        <th>Joined</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-semibold">@(string.IsNullOrEmpty(user.FullName) ? "—" : user.FullName)</td>
+                            <td class="text-muted">@user.Email</td>
+                            <td><span class="badge bg-primary">@user.XP XP</span> <span class="badge bg-secondary">Lv.@user.Level</span></td>
+                            <td class="text-muted small">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <form method="post" asp-action="SetRole" class="d-flex gap-2">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <select name="role" class="form-select form-select-sm" style="width:120px">
+                                        <option value="Student">Student</option>
+                                        <option value="Mentor">Mentor</option>
+                                        <option value="Admin">Admin</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Set</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

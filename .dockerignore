@@ -1,0 +1,8 @@
+bin/
+obj/
+.git/
+.gitignore
+.vs/
+appsettings.Development.json
+README.md
+RENDER_DEPLOY.md
