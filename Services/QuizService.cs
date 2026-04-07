@@ -25,10 +25,14 @@ public class QuizService
         await using var conn = new NpgsqlConnection(_connStr);
         var sql = """
             SELECT u."Id", u."FullName", u."XP", u."Level",
-                   COUNT(qa."Id") AS TotalAttempts,
-                   COALESCE(AVG(qa."Score"), 0) AS AvgScore
+                   COUNT(qa."Id") AS "TotalAttempts",
+                   COALESCE(AVG(
+                       CASE WHEN qa."TotalQuestions" > 0
+                            THEN (qa."CorrectAnswers"::float / qa."TotalQuestions"::float) * 100
+                            ELSE 0 END
+                   ), 0) AS "AvgScore"
             FROM "AspNetUsers" u
-            LEFT JOIN "QuizAttempts" qa ON qa."UserId" = u."Id" AND qa."Status" = 2
+            LEFT JOIN "QuizAttempts" qa ON qa."UserId" = u."Id" AND qa."Status" = 1
             GROUP BY u."Id", u."FullName", u."XP", u."Level"
             ORDER BY u."XP" DESC
             LIMIT @top
