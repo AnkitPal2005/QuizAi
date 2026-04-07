@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AIQuizPlatform.Data;
 using AIQuizPlatform.Models;
-
 namespace AIQuizPlatform.Controllers;
 
 [Authorize(Roles = "Admin")]
@@ -12,13 +11,11 @@ public class AdminController : Controller
 {
     private readonly ApplicationDbContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
 
-    public AdminController(ApplicationDbContext db, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+    public AdminController(ApplicationDbContext db, UserManager<ApplicationUser> userManager)
     {
         _db = db;
         _userManager = userManager;
-        _roleManager = roleManager;
     }
 
     public async Task<IActionResult> Index()
@@ -207,28 +204,5 @@ public class AdminController : Controller
         var quiz = await _db.Quizzes.FindAsync(id);
         if (quiz != null) { _db.Quizzes.Remove(quiz); await _db.SaveChangesAsync(); }
         return RedirectToAction(nameof(Quizzes));
-    }
-
-    // ─── OLD USERS (kept for backward compat) ───────────────────
-
-    public async Task<IActionResult> Users()
-    {
-        var users = await _db.Users.Cast<ApplicationUser>().ToListAsync();
-        return View(users);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> SetRole(string userId, string role)
-    {
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null) return NotFound();
-
-        if (!await _roleManager.RoleExistsAsync(role))
-            await _roleManager.CreateAsync(new IdentityRole(role));
-
-        var currentRoles = await _userManager.GetRolesAsync(user);
-        await _userManager.RemoveFromRolesAsync(user, currentRoles);
-        await _userManager.AddToRoleAsync(user, role);
-        return RedirectToAction(nameof(Users));
     }
 }

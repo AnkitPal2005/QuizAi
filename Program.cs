@@ -6,20 +6,12 @@ using AIQuizPlatform.Models;
 using AIQuizPlatform.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-var port = builder.Configuration["PORT"];
-
-if (!string.IsNullOrWhiteSpace(port))
-{
-    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
-}
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
-
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
@@ -60,7 +52,6 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new IdentityRole(role));
     }
 
-    // Create default admin
     const string adminEmail = "Ankit@admin.com";
     if (await userManager.FindByEmailAsync(adminEmail) == null)
     {
@@ -77,20 +68,18 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-if (app.Environment.IsDevelopment())
-    app.UseMigrationsEndPoint();
-else
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
-
+// ngrok / reverse proxy support
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
