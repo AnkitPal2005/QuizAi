@@ -3,7 +3,7 @@
 }
 
 <!-- Hero -->
-<div class="hero-section mb-5 text-white">
+<div class="hero-section mb-4 mb-md-5 text-white">
     <div class="row align-items-center">
         <div class="col-lg-7">
             <div class="d-inline-flex align-items-center gap-2 mb-3 px-3 py-1 rounded-pill"
@@ -11,27 +11,27 @@
                 <i class="bi bi-robot text-warning" style="font-size:0.85rem"></i>
                 <span style="font-size:0.8rem;color:#fbbf24;font-weight:600">Powered by Groq AI — LLaMA 3</span>
             </div>
-            <h1 style="font-size:2.8rem;font-weight:800;line-height:1.15;letter-spacing:-1px" class="mb-3">
+            <h1 style="font-size:clamp(1.7rem,5vw,2.8rem);font-weight:800;line-height:1.15;letter-spacing:-1px" class="mb-3">
                 Master Any Topic with<br>
                 <span style="background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
                     AI-Generated Quizzes
                 </span>
             </h1>
-            <p style="color:rgba(255,255,255,0.65);font-size:1.05rem;max-width:480px" class="mb-4">
+            <p style="color:rgba(255,255,255,0.65);font-size:clamp(0.875rem,2.5vw,1.05rem);max-width:480px" class="mb-4">
                 Generate personalized quizzes on DSA, CN, OS, DBMS and more. Track progress, compete on leaderboards, and level up your skills.
             </p>
-            <div class="d-flex gap-3 flex-wrap">
+            <div class="d-flex gap-2 flex-wrap">
                 @if (!User.Identity!.IsAuthenticated || User.IsInRole("Admin") || User.IsInRole("Mentor"))
                 {
                     <a asp-controller="Quiz" asp-action="Generate"
                        class="btn btn-warning px-4 py-2"
-                       style="font-size:0.95rem;border-radius:10px;box-shadow:0 4px 20px rgba(245,158,11,0.4)">
+                       style="font-size:0.9rem;border-radius:10px;box-shadow:0 4px 20px rgba(245,158,11,0.4)">
                         <i class="bi bi-lightning-charge me-2"></i>Generate Quiz
                     </a>
                 }
                 <a asp-controller="Quiz" asp-action="Index"
                    class="btn px-4 py-2"
-                   style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:0.95rem;border-radius:10px">
+                   style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:0.9rem;border-radius:10px">
                     <i class="bi bi-collection me-2"></i>Browse Quizzes
                 </a>
             </div>

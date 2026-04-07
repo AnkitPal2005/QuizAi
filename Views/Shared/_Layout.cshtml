@@ -12,41 +12,96 @@
 </head>
 <body>
 
+@{
+    bool isAuth     = User.Identity?.IsAuthenticated == true;
+    bool isAdmin    = User.IsInRole("Admin");
+    bool isMentor   = User.IsInRole("Mentor");
+}
+
 <nav class="site-navbar">
     <div class="container">
         <div class="d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-4">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-lightning-charge-fill text-warning me-1"></i>QuizAI
+            <!-- Brand -->
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>QuizAI
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <div class="nav-links d-none d-lg-flex align-items-center gap-1">
+                <a class="nav-link" asp-controller="Quiz" asp-action="Index">
+                    <i class="bi bi-collection me-1"></i>Browse
                 </a>
-                <div class="nav-links d-none d-lg-flex align-items-center gap-1">
-                    <a class="nav-link" asp-controller="Quiz" asp-action="Index">
-                        <i class="bi bi-collection me-1"></i>Browse
-                    </a>
-                    @if (User.Identity?.IsAuthenticated == true)
+                @if (isAuth)
+                {
+                    @if (isAdmin || isMentor)
                     {
-                        @if (User.IsInRole("Admin") || User.IsInRole("Mentor"))
-                        {
-                            <a class="nav-link" asp-controller="Quiz" asp-action="Generate">
-                                <i class="bi bi-robot me-1"></i>AI Generate
-                            </a>
-                        }
-                        <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
-                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        <a class="nav-link" asp-controller="Quiz" asp-action="Generate">
+                            <i class="bi bi-robot me-1"></i>AI Generate
                         </a>
                     }
-                    <a class="nav-link" asp-controller="Quiz" asp-action="Leaderboard">
-                        <i class="bi bi-trophy me-1"></i>Leaderboard
+                    <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
+                        <i class="bi bi-speedometer2 me-1"></i>Dashboard
                     </a>
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <a class="nav-link nav-admin" asp-controller="Admin" asp-action="Index">
-                            <i class="bi bi-shield-check me-1"></i>Admin
-                        </a>
-                    }
-                </div>
+                }
+                <a class="nav-link" asp-controller="Quiz" asp-action="Leaderboard">
+                    <i class="bi bi-trophy me-1"></i>Leaderboard
+                </a>
+                @if (isAdmin)
+                {
+                    <a class="nav-link nav-admin" asp-controller="Admin" asp-action="Index">
+                        <i class="bi bi-shield-check me-1"></i>Admin
+                    </a>
+                }
             </div>
-            <partial name="_LoginPartial" />
+
+            <!-- Right: Login + Hamburger -->
+            <div class="d-flex align-items-center gap-2">
+                <partial name="_LoginPartial" />
+                <!-- Hamburger (mobile only) -->
+                <button class="navbar-toggler-custom d-lg-none" id="mobileMenuBtn" aria-label="Toggle menu" style="flex-shrink:0">
+                    <i class="bi bi-list" id="menuIcon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu d-lg-none" id="mobileMenu">
+            <div class="mobile-menu-inner">
+                <a class="mobile-nav-link" asp-controller="Quiz" asp-action="Index">
+                    <i class="bi bi-collection"></i>Browse Quizzes
+                </a>
+                @if (isAuth)
+                {
+                    @if (isAdmin || isMentor)
+                    {
+                        <a class="mobile-nav-link" asp-controller="Quiz" asp-action="Generate">
+                            <i class="bi bi-robot"></i>AI Generate
+                        </a>
+                    }
+                    <a class="mobile-nav-link" asp-controller="Dashboard" asp-action="Index">
+                        <i class="bi bi-speedometer2"></i>Dashboard
+                    </a>
+                }
+                <a class="mobile-nav-link" asp-controller="Quiz" asp-action="Leaderboard">
+                    <i class="bi bi-trophy"></i>Leaderboard
+                </a>
+                @if (isAdmin)
+                {
+                    <a class="mobile-nav-link mobile-nav-admin" asp-controller="Admin" asp-action="Index">
+                        <i class="bi bi-shield-check"></i>Admin Panel
+                    </a>
+                }
+                @if (!isAuth)
+                {
+                    <div class="mobile-menu-divider"></div>
+                    <a class="mobile-nav-link" asp-area="Identity" asp-page="/Account/Login">
+                        <i class="bi bi-box-arrow-in-right"></i>Login
+                    </a>
+                    <a class="mobile-nav-link" asp-area="Identity" asp-page="/Account/Register">
+                        <i class="bi bi-person-plus"></i>Register
+                    </a>
+                }
+            </div>
         </div>
     </div>
 </nav>
@@ -81,6 +136,23 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
+<script>
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const menuIcon = document.getElementById('menuIcon');
+    mobileMenuBtn?.addEventListener('click', () => {
+        const isOpen = mobileMenu.classList.toggle('open');
+        menuIcon.className = isOpen ? 'bi bi-x-lg' : 'bi bi-list';
+    });
+    // Close on link click
+    document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.remove('open');
+            menuIcon.className = 'bi bi-list';
+        });
+    });
+</script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

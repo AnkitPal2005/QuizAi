@@ -31,7 +31,7 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.06);
     padding: 0.85rem 0;
     position: relative;
-    z-index: 10;
+    z-index: 100;
 }
 
 .navbar-brand {
@@ -40,6 +40,7 @@ body {
     letter-spacing: -0.5px;
     color: #fff !important;
     text-decoration: none;
+    flex-shrink: 0;
 }
 
 .nav-links .nav-link {
@@ -52,6 +53,7 @@ body {
     transition: all 0.15s;
     display: inline-flex;
     align-items: center;
+    white-space: nowrap;
 }
 
 .nav-links .nav-link:hover {
@@ -61,10 +63,81 @@ body {
 
 .nav-admin { color: #f59e0b !important; }
 
+/* ===== HAMBURGER BUTTON ===== */
+.navbar-toggler-custom {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    flex-shrink: 0;
+}
+.navbar-toggler-custom:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+/* ===== MOBILE MENU ===== */
+.mobile-menu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+.mobile-menu.open {
+    max-height: 500px;
+    padding-bottom: 0.75rem;
+}
+.mobile-menu-inner {
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.mobile-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: rgba(255,255,255,0.75);
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 9px;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+.mobile-nav-link:hover,
+.mobile-nav-link:focus {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+}
+.mobile-nav-link i {
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+    opacity: 0.8;
+}
+.mobile-nav-admin {
+    color: #fbbf24 !important;
+}
+
+.mobile-menu-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 0.4rem 0;
+}
+
 /* ===== MAIN ===== */
 .site-main {
     min-height: calc(100vh - 130px);
-    padding: 2rem 0;
+    padding: 1.5rem 0;
 }
 
 /* ===== FOOTER ===== */
@@ -248,7 +321,7 @@ body {
 .hero-section {
     background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 70%, #4c1d95 100%);
     border-radius: 20px;
-    padding: 4rem 3rem;
+    padding: 3rem 2rem;
     position: relative;
     overflow: hidden;
 }
@@ -320,3 +393,107 @@ body {
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: #f1f5f9; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+
+/* ===== RESPONSIVE ===== */
+
+/* Mobile: hero */
+@media (max-width: 767px) {
+    .hero-section {
+        padding: 2rem 1.25rem;
+        border-radius: 14px;
+    }
+    .hero-section h1 {
+        font-size: 1.9rem !important;
+        letter-spacing: -0.5px !important;
+    }
+    .hero-section p {
+        font-size: 0.9rem !important;
+    }
+    .hero-section .d-flex.gap-3 {
+        gap: 0.6rem !important;
+    }
+    .hero-section .btn {
+        font-size: 0.85rem !important;
+        padding: 0.5rem 1rem !important;
+    }
+}
+
+/* Mobile: stat cards */
+@media (max-width: 575px) {
+    .stat-card .card-body {
+        padding: 1rem !important;
+    }
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+    }
+}
+
+/* Mobile: quiz take sidebar — move to bottom on mobile */
+@media (max-width: 991px) {
+    .quiz-sidebar-sticky {
+        position: static !important;
+    }
+    /* Question nav buttons smaller on mobile */
+    .nav-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.72rem;
+    }
+}
+
+/* Mobile: tables scroll */
+.table-responsive {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile: admin header wrap */
+@media (max-width: 575px) {
+    .page-header-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.75rem;
+    }
+    .page-header-flex .btn-group-right {
+        width: 100%;
+        display: flex;
+        gap: 0.5rem;
+    }
+    .page-header-flex .btn-group-right .btn {
+        flex: 1;
+    }
+}
+
+/* Mobile: dashboard profile card */
+@media (max-width: 575px) {
+    .dashboard-profile-xp {
+        margin-top: 0.75rem;
+    }
+}
+
+/* Mobile: result page buttons */
+@media (max-width: 575px) {
+    .result-actions {
+        flex-direction: column;
+    }
+    .result-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Mobile: leaderboard podium text truncate */
+@media (max-width: 400px) {
+    .podium-name {
+        font-size: 0.72rem !important;
+    }
+}
+
+/* Tablet: generate page info panel hidden already via d-none d-lg-block */
+
+/* Mobile: filter form full width */
+@media (max-width: 575px) {
+    .filter-form .col-md-3 .btn {
+        margin-top: 0;
+    }
+}

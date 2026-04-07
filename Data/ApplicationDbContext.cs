@@ -44,8 +44,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             new Category { Id = 3, Name = "Operating Systems", IconClass = "bi-cpu", ColorHex = "#10b981" },
             new Category { Id = 4, Name = "Database Management", IconClass = "bi-database", ColorHex = "#f59e0b" },
             new Category { Id = 5, Name = "Object Oriented Programming", IconClass = "bi-boxes", ColorHex = "#ef4444" },
-            new Category { Id = 6, Name = "System Design", IconClass = "bi-layers", ColorHex = "#8b5cf6" }
-        );
+            new Category { Id = 6, Name = "System Design", IconClass = "bi-layers", ColorHex = "#8b5cf6" },
+            new Category { Id = 7, Name = "DotNet", IconClass = "bi-code-slash", ColorHex = "#8b5cf5" }
+        ); 
 
         // Seed badges
         builder.Entity<Badge>().HasData(
